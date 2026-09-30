@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Petualangan Si Pencerna — MPI IPAS Kelas 6</title>
+<style>
+/* ============ ROOT & RESET ============ */
+:root{
+  --bg:#f2f6ff;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#5b6b85;
+  --line:#dfe7f5;
+  --primary:#2f6df6;
+  --primary-d:#1d4ed8;
+  --violet:#7c4dff;
+  --accent:#06b6d4;
+  --ok:#16a34a;
+  --ok-soft:#e8f9ee;
+  --warn:#f59e0b;
+  --bad:#e11d48;
+  --bad-soft:#fdecef;
+  --shadow:0 10px 30px rgba(31,64,140,.10);
+  --shadow-sm:0 4px 14px rgba(31,64,140,.08);
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% -5%, #e2ecff 0%, transparent 45%),
+    radial-gradient(circle at 95% 5%, #f0e6ff 0%, transparent 40%),
+    radial-gradient(circle at 50% 100%, #e6fbff 0%, transparent 45%),
+    #fbfcff;
+  min-height:100vh;
+  line-height:1.65;
+  font-size:16px;
+}
+img{max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none}
+h1,h2,h3,h4{line-height:1.25;margin:0 0 .5rem}
+p{margin:0 0 .9rem}
+a{color:var(--primary)}
+
+/* ============ TOPBAR ============ */
+.topbar{
+  position:sticky;top:0;z-index:60;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 2px 14px rgba(31,64,140,.06);
+}
+.topbar-inner{
+  max-width:1280px;margin:0 auto;
+  display:flex;align-items:center;gap:14px;
+  padding:10px 16px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+.brand .logo{
+  width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+  background:linear-gradient(135deg,#3b82f6,#7c4dff);color:#fff;box-shadow:0 6px 16px rgba(80,80,220,.28);
+}
+.brand small{display:block;font-weight:600;font-size:11px;color:var(--muted);letter-spacing:.4px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.navbtn{
+  background:#f3f6ff;color:#3c4a63;border-radius:12px;padding:9px 14px;font-weight:700;font-size:13.5px;
+  transition:.18s;border:1px solid transparent;white-space:nowrap;
+}
+.navbtn:hover{background:#e7eeff;transform:translateY(-1px)}
+.navbtn.active{background:linear-gradient(135deg,var(--primary),var(--violet));color:#fff;box-shadow:0 6px 16px rgba(70,90,230,.3)}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{
+  background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:5px 11px;font-weight:800;font-size:13px;box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.chip.score{color:#a16207;background:#fffbeb;border-color:#fde68a}
+.chip.coin{color:#b45309;background:#fff7ed;border-color:#fed7aa}
+.chip.life{color:#be123c;background:#fff1f2;border-color:#fecdd3}
+.chip.badge{color:#4338ca;background:#eef2ff;border-color:#c7d2fe}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1280px;margin:0 auto;padding:22px 16px 60px}
+.page{display:none;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:22px;
+}
+.section-head{margin-bottom:18px}
+.kicker{
+  display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;color:#3b5bdb;background:#eaf0ff;border-radius:999px;padding:6px 14px;margin-bottom:10px;
+}
+.section-head h2{font-size:clamp(1.35rem,3.4vw,2rem);font-weight:900}
+.section-head p{color:var(--muted);margin:0;max-width:820px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+
+/* ============ HERO / LANDING ============ */
+.hero{
+  position:relative;overflow:hidden;border-radius:26px;
+  background:linear-gradient(135deg,#eaf1ff 0%,#f4ecff 48%,#e6fbff 100%);
+  border:1px solid #dbe6ff;
+  padding:38px 26px 34px;
+  box-shadow:var(--shadow);
+}
+.hero::before,.hero::after{
+  content:'';position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;
+}
+.hero::before{width:230px;height:230px;background:radial-gradient(circle,#bfd4ff,transparent 70%);top:-70px;right:-50px}
+.hero::after{width:260px;height:260px;background:radial-gradient(circle,#d9c7ff,transparent 70%);bottom:-110px;left:-70px}
+.hero-inner{position:relative;z-index:2;max-width:760px}
+.hero h1{
+  font-size:clamp(1.9rem,5.4vw,3.1rem);font-weight:900;margin:8px 0 12px;
+  background:linear-gradient(120deg,#1d4ed8,#7c4dff 55%,#0891b2);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{font-size:clamp(1rem,2.2vw,1.12rem);color:#3d4c66;max-width:640px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{
+  border-radius:14px;padding:12px 20px;font-weight:800;font-size:14.5px;
+  display:inline-flex;align-items:center;gap:8px;transition:.18s;border:1px solid transparent;
+}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--violet));color:#fff;box-shadow:0 8px 22px rgba(80,80,230,.28)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(80,80,230,.34)}
+.btn-ghost{background:#fff;color:#334155;border-color:var(--line);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{background:#f6f8ff;transform:translateY(-2px)}
+.btn-ok{background:linear-gradient(135deg,#16a34a,#059669);color:#fff;box-shadow:0 8px 20px rgba(16,150,90,.25)}
+.btn-warn{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;box-shadow:0 8px 20px rgba(230,140,20,.25)}
+.btn-sm{padding:9px 14px;font-size:13px;border-radius:11px}
+.floaters{position:absolute;inset:0;pointer-events:none;z-index:1}
+.floaters span{
+  position:absolute;font-size:30px;opacity:.85;animation:floaty 5.5s ease-in-out infinite;
+}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-16px) rotate(6deg)}}
+.f1{top:12%;right:8%;animation-delay:.2s}
+.f2{top:44%;right:20%;font-size:26px;animation-delay:1.1s}
+.f3{bottom:12%;right:6%;animation-delay:.6s}
+.f4{top:22%;right:34%;font-size:22px;animation-delay:1.6s}
+.f5{bottom:22%;right:40%;font-size:24px;animation-delay:2.1s}
+@media(max-width:700px){.f4,.f5{display:none}.hero{padding:28px 18px}}
+
+.menu-card{
+  text-align:left;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;
+  box-shadow:var(--shadow-sm);transition:.2s;display:block;width:100%;
+}
+.menu-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:#c7d7ff}
+.menu-card .ic{font-size:28px;display:block;margin-bottom:6px}
+.menu-card b{display:block;font-size:1.02rem;margin-bottom:3px}
+.menu-card span{font-size:13px;color:var(--muted)}
+
+/* ============ TUJUAN ============ */
+.obj-item{
+  display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);
+}
+.obj-item .num{
+  min-width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--violet));box-shadow:0 6px 14px rgba(80,80,220,.25);
+}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.flow .step{background:#f3f7ff;border:1px dashed #b9cdfd;border-radius:14px;padding:10px 14px;font-weight:700;font-size:13.5px;color:#2b3d5f}
+.flow .arrow{color:#94a7c8;font-weight:900}
+
+/* ============ MATERI ============ */
+.materi-layout{display:grid;grid-template-columns:270px 1fr;gap:18px;align-items:start}
+@media(max-width:960px){.materi-layout{grid-template-columns:1fr}}
+.toc{position:sticky;top:92px}
+.toc h4{font-size:.78rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.toc a{
+  display:block;text-decoration:none;color:#33415c;font-weight:700;font-size:13.6px;
+  padding:9px 12px;border-radius:11px;margin-bottom:5px;transition:.16s;
+}
+.toc a:hover{background:#eef3ff;color:var(--primary-d);transform:translateX(3px)}
+.materi-body h3{
+  font-size:1.28rem;font-weight:900;margin:26px 0 12px;padding-left:14px;border-left:5px solid var(--primary);
+}
+.materi-body h3:first-child{margin-top:0}
+.materi-body h4{font-size:1.04rem;font-weight:800;color:#1e3a8a;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.materi-body p{color:#33415c;text-align:justify}
+.materi-body strong{color:#12274d}
+.poin{
+  background:linear-gradient(135deg,#f0f7ff,#f6f0ff);border:1px solid #dbe6ff;border-left:5px solid var(--violet);
+  border-radius:14px;padding:14px 18px;margin:14px 0;
+}
+.poin b{color:#4338ca}
+.rumus{
+  background:#0f172a;color:#e2e8f0;border-radius:14px;padding:16px 18px;font-weight:700;
+  text-align:center;font-size:1.02rem;letter-spacing:.3px;overflow-x:auto;
+}
+.tag{display:inline-block;background:#eef2ff;color:#4338ca;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;margin:2px 4px 2px 0}
+.organ-card{
+  background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px 16px;box-shadow:var(--shadow-sm);
+  border-top:4px solid var(--accent);
+}
+.organ-card b{display:block;color:#0e7490;font-size:1rem;margin-bottom:4px}
+.organ-card p{font-size:14px;margin:0;color:#3c4a63}
+
+/* ============ LAB MAYA ============ */
+.lab-layout{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+@media(max-width:980px){.lab-layout{grid-template-columns:1fr}}
+.slider-box{margin-bottom:18px}
+.slider-box label{display:flex;justify-content:space-between;font-weight:800;font-size:13.6px;margin-bottom:7px;color:#243b60}
+.slider-box label .val{color:var(--primary-d);background:#eef3ff;border-radius:8px;padding:1px 9px;font-size:12.5px}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;
+  background:linear-gradient(90deg,#93b4ff,#c9b6ff);outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:4px solid var(--primary);
+  box-shadow:0 3px 10px rgba(47,109,246,.4);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--primary);cursor:pointer;
+}
+.slider-desc{font-size:12.2px;color:var(--muted);margin-top:5px}
+.canvas-wrap{
+  position:relative;background:linear-gradient(180deg,#f7fbff,#eef5ff);border:1px solid var(--line);
+  border-radius:18px;overflow:hidden;
+}
+#labCanvas{width:100%;height:400px;display:block;touch-action:none}
+@media(max-width:640px){#labCanvas{height:320px}}
+.metric{
+  display:flex;justify-content:space-between;align-items:center;background:#f7faff;border:1px solid var(--line);
+  border-radius:13px;padding:10px 14px;margin-bottom:9px;font-size:13.6px;font-weight:700;
+}
+.metric .mv{font-weight:900;color:var(--primary-d)}
+.bar{height:11px;background:#e6edfa;border-radius:99px;overflow:hidden;margin-top:6px}
+.bar > i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#22c55e,#06b6d4);transition:width .3s}
+.status-box{border-radius:14px;padding:13px 16px;font-weight:800;font-size:14px;margin-top:12px;border:1px solid}
+.status-good{background:var(--ok-soft);border-color:#b6ecc8;color:#166534}
+.status-mid{background:#fff8e6;border-color:#fde2a5;color:#92400e}
+.status-bad{background:var(--bad-soft);border-color:#fbc6d1;color:#9f1239}
+
+/* ============ PUZZLE ============ */
+.slots{display:grid;gap:11px;margin-bottom:20px}
+.slot{
+  display:flex;align-items:center;gap:12px;min-height:62px;border:2px dashed #b9cdfd;border-radius:15px;
+  background:#f8fbff;padding:8px 12px;transition:.18s;
+}
+.slot .slot-no{
+  min-width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#60a5fa,#818cf8);font-size:14px;
+}
+.slot.over{border-color:var(--primary);background:#eaf1ff;transform:scale(1.012)}
+.slot.filled{border-style:solid;border-color:#c7d7ff;background:#fff}
+.slot.correct{border-color:#22c55e;background:#f0fdf4}
+.slot.wrong{border-color:#f43f5e;background:#fff1f2;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pool{display:flex;flex-wrap:wrap;gap:11px;min-height:70px;padding:12px;border-radius:15px;background:#f4f7ff;border:1px solid var(--line)}
+.pcard{
+  background:#fff;border:1px solid #cfdcff;border-radius:13px;padding:11px 15px;font-weight:700;font-size:13.6px;
+  box-shadow:0 4px 12px rgba(31,64,140,.09);cursor:grab;user-select:none;touch-action:none;color:#243b60;
+  transition:transform .15s, box-shadow .15s;max-width:100%;
+}
+.pcard:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,64,140,.16)}
+.pcard.dragging{opacity:.35}
+.pcard.placed{cursor:default;box-shadow:none;background:#eef4ff;border-color:#b9cdfd;flex:1}
+.ghost{
+  position:fixed;z-index:9999;pointer-events:none;background:#fff;border:2px solid var(--primary);
+  border-radius:13px;padding:11px 15px;font-weight:800;font-size:13.6px;color:#1d4ed8;
+  box-shadow:0 14px 30px rgba(31,64,140,.28);transform:rotate(-2deg) scale(1.03);
+}
+.hintline{font-size:12.5px;color:var(--muted);font-style:italic}
+
+/* ============ EVALUASI ============ */
+.gate{max-width:520px;margin:0 auto}
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:800;font-size:13.6px;margin-bottom:6px;color:#243b60}
+.field input,.field select{
+  width:100%;padding:12px 14px;border-radius:13px;border:1.6px solid var(--line);font-size:15px;
+  font-family:inherit;background:#fbfcff;transition:.16s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(47,109,246,.12)}
+.hint-key{font-size:12px;color:var(--muted);margin-top:6px}
+
+.eval-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
+@media(max-width:1000px){.eval-layout{grid-template-columns:1fr}}
+.profile-card{position:sticky;top:92px}
+@media(max-width:1000px){.profile-card{position:static}}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.node{
+  background:#fff;border:1.6px solid var(--line);border-radius:17px;padding:13px 11px;text-align:center;
+  transition:.18s;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:4px;align-items:center;
+}
+.node:hover:not(:disabled){transform:translateY(-4px);border-color:#b9cdfd;box-shadow:var(--shadow)}
+.node .node-icon{font-size:26px;line-height:1}
+.node .node-num{font-size:10.5px;font-weight:900;letter-spacing:.9px;color:#7c8aa5;text-transform:uppercase}
+.node .node-title{font-size:12.6px;font-weight:800;color:#243b60;line-height:1.35}
+.node.done{background:linear-gradient(160deg,#f0fdf4,#e7f9ff);border-color:#a7e8c0}
+.node.locked{opacity:.55;background:#f4f6fa;cursor:not-allowed;filter:grayscale(.4)}
+.node.final{grid-column:1/-1;background:linear-gradient(135deg,#fff7ed,#fef2f8);border-color:#fed7aa}
+.node.final .node-title{color:#9a3412;font-size:14px}
+.node.final.done{background:linear-gradient(135deg,#ecfdf5,#eef2ff);border-color:#a7e8c0}
+
+.q-head{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:12px}
+.q-text{font-size:1.06rem;font-weight:800;color:#16233c;margin-bottom:14px;line-height:1.55}
+.stimulus{width:100%;max-width:520px;border-radius:15px;border:1px solid var(--line);margin-bottom:14px;display:block}
+.opts{display:grid;gap:10px}
+.opt{
+  display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;
+  background:#fbfcff;border:1.6px solid var(--line);border-radius:15px;padding:13px 15px;
+  font-size:14.6px;font-weight:600;color:#243b60;transition:.16s;
+}
+.opt:hover:not(:disabled){background:#f2f7ff;border-color:#b9cdfd;transform:translateX(3px)}
+.opt .k{
+  min-width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:13px;
+  background:#eaf0ff;color:#3b5bdb;flex:none;
+}
+.opt.sel{border-color:var(--primary);background:#eef4ff;box-shadow:0 0 0 4px rgba(47,109,246,.10)}
+.opt.sel .k{background:var(--primary);color:#fff}
+.opt.ok{border-color:#22c55e;background:#f0fdf4}
+.opt.ok .k{background:#22c55e;color:#fff}
+.opt.no{border-color:#f43f5e;background:#fff1f2}
+.opt.no .k{background:#f43f5e;color:#fff}
+.opt:disabled{cursor:default}
+
+.timer-ring{display:flex;align-items:center;gap:8px;font-weight:900;color:#334155}
+.timer-bar{height:8px;background:#e6edfa;border-radius:99px;overflow:hidden;margin-top:8px}
+.timer-bar > i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);width:100%;transition:width 1s linear}
+.feedback{border-radius:16px;padding:15px 17px;margin-top:15px;font-weight:700;font-size:14.2px;border:1px solid;display:none}
+.feedback.show{display:block;animation:fadeUp .3s}
+.fb-ok{background:var(--ok-soft);border-color:#b6ecc8;color:#166534}
+.fb-no{background:var(--bad-soft);border-color:#fbc6d1;color:#9f1239}
+.fb-hint{background:#fffbeb;border-color:#fde68a;color:#92400e;margin-top:10px;border-radius:13px;padding:12px 15px;font-size:13.6px;font-weight:700}
+
+/* ============ MODAL ============ */
+.modal{
+  position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(15,23,42,.5);backdrop-filter:blur(4px);
+}
+.modal.open{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  background:#fff;border-radius:22px;max-width:640px;width:100%;max-height:88vh;overflow:auto;
+  box-shadow:0 30px 70px rgba(15,23,42,.3);padding:24px;animation:pop .28s;
+}
+@keyframes pop{from{transform:scale(.94) translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.modal-box h3{font-size:1.25rem;font-weight:900;margin-bottom:6px}
+.modal-close{background:#f1f5f9;border-radius:11px;padding:8px 13px;font-weight:800;color:#475569}
+
+/* ============ VICTORY ============ */
+.victory{text-align:center}
+.victory .trophy{font-size:64px;animation:floaty 3s ease-in-out infinite}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px;margin:18px 0}
+.stat{background:#f7faff;border:1px solid var(--line);border-radius:15px;padding:13px}
+.stat b{display:block;font-size:1.5rem;color:var(--primary-d)}
+.stat span{font-size:12px;color:var(--muted);font-weight:700}
+
+/* ============ TOAST & FOOTER ============ */
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+  background:#0f172a;color:#fff;padding:12px 22px;border-radius:99px;font-weight:800;font-size:13.6px;
+  z-index:900;opacity:0;transition:.35s;pointer-events:none;box-shadow:0 12px 30px rgba(15,23,42,.35);max-width:90vw;text-align:center;
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+footer{
+  border-top:1px solid var(--line);background:rgba(255,255,255,.8);padding:22px 16px;text-align:center;
+}
+footer .dev{font-weight:900;color:#1e3a8a}
+footer small{color:var(--muted);display:block;margin-top:5px}
+.badge-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.badge-pill{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:99px;padding:4px 11px;font-size:12px;font-weight:800}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<!-- ================= TOPBAR ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="logo">🧬</span>
+      <span>Petualangan Si Pencerna
+        <small>IPAS • Fase C • Kelas 6</small>
+      </span>
+    </div>
+    <nav class="nav">
+      <button class="navbtn active" data-page="beranda">🏠 Beranda</button>
+      <button class="navbtn" data-page="tujuan">🎯 Tujuan</button>
+      <button class="navbtn" data-page="materi">📖 Materi</button>
+      <button class="navbtn" data-page="lab">🧪 Lab Maya</button>
+      <button class="navbtn" data-page="puzzle">🧩 Puzzle</button>
+      <button class="navbtn" data-page="evaluasi">🚀 Evaluasi</button>
+    </nav>
+    <div class="hud">
+      <span class="chip score">⭐ <span id="hudScore">0</span></span>
+      <span class="chip coin">🪙 <span id="hudCoins">0</span></span>
+      <span class="chip life" id="hudLives">❤️❤️❤️</span>
+      <span class="chip badge">🏅 <span id="hudBadge">0</span></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= BERANDA ================= -->
+<section class="page active" id="page-beranda">
+  <div class="wrap">
+    <div class="hero">
+      <div class="floaters">
+        <span class="f1">🔬</span><span class="f2">🫀</span><span class="f3">💡</span>
+        <span class="f4">🍎</span><span class="f5">🧪</span>
+      </div>
+      <div class="hero-inner">
+        <span class="kicker">🚀 Misi Pengetahuan • IPAS Kelas 6</span>
+        <h1>Petualangan Si Pencerna</h1>
+        <p class="lead">
+          Selamat datang, Penjelajah Muda! Ikuti perjalanan seru sepotong makanan menjelajahi
+          <b>11 organ pencernaan manusia</b>. Bongkar rahasia enzim, uji laboratorium maya,
+          rangkai puzzle, dan taklukkan 10 titik petualangan ilmu!
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" data-go="evaluasi">🚀 Mulai Petualangan</button>
+          <button class="btn btn-ghost" data-go="materi">📖 Baca Materi</button>
+          <button class="btn btn-ghost" data-go="lab">🧪 Coba Lab Maya</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:20px">
+      <button class="menu-card" data-go="tujuan">
+        <span class="ic">🎯</span>
+        <b>Tujuan Pembelajaran</b>
+        <span>Capaian kompetensi yang akan kamu kuasai.</span>
+      </button>
+      <button class="menu-card" data-go="materi">
+        <span class="ic">📖</span>
+        <b>Materi Pembelajaran</b>
+        <span>Modul lengkap: organ, fungsi, penyakit, dan cara merawat.</span>
+      </button>
+      <button class="menu-card" data-go="lab">
+        <span class="ic">🧪</span>
+        <b>Lab Maya</b>
+        <span>Simulasi interaktif proses pencernaan makanan.</span>
+      </button>
+      <button class="menu-card" data-go="puzzle">
+        <span class="ic">🧩</span>
+        <b>Puzzle Drag &amp; Drop</b>
+        <span>Susun urutan perjalanan makanan dengan tepat.</span>
+      </button>
+      <button class="menu-card" data-go="evaluasi">
+        <span class="ic">🚀</span>
+        <b>Peta Petualangan &amp; Evaluasi</b>
+        <span>10 titik misi + Final Challenge menantimu!</span>
+      </button>
+      <div class="menu-card" style="cursor:default;background:linear-gradient(135deg,#f5f0ff,#eef7ff)">
+        <span class="ic">💡</span>
+        <b>Petunjuk Penggunaan</b>
+        <span>Jelajahi semua menu dengan bebas tanpa perlu masuk. Saat mengerjakan evaluasi, isi nama &amp; kunci terlebih dahulu.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TUJUAN ================= -->
+<section class="page" id="page-tujuan">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">🎯 Tujuan Pembelajaran</span>
+      <h2>Apa yang Akan Kamu Kuasai?</h2>
+      <p>Setelah menyelesaikan petualangan ini, kamu diharapkan mampu menganalisis sistem pencernaan manusia secara utuh.</p>
+    </div>
+
+    <div class="grid g2">
+      <div class="obj-item">
+        <span class="num">1</span>
+        <div><b>Menganalisis alat &amp; organ pencernaan manusia</b>
+        <p style="margin:4px 0 0;color:#3c4a63;font-size:14px">Mengidentifikasi 11 organ pencernaan beserta fungsi spesifik masing-masing organ.</p></div>
+      </div>
+      <div class="obj-item">
+        <span class="num">2</span>
+        <div><b>Menjelaskan proses pencernaan mekanik &amp; kimiawi</b>
+        <p style="margin:4px 0 0;color:#3c4a63;font-size:14px">Membedakan peran gigi, gerak peristaltik, enzim, asam lambung, dan empedu.</p></div>
+      </div>
+      <div class="obj-item">
+        <span class="num">3</span>
+        <div><b>Mengidentifikasi penyakit pada alat pencernaan</b>
+        <p style="margin:4px 0 0;color:#3c4a63;font-size:14px">Mengenali gejala diare, sembelit, gastritis, GERD, keracunan makanan, apendisitis, dan wasir.</p></div>
+      </div>
+      <div class="obj-item">
+        <span class="num">4</span>
+        <div><b>Menerapkan cara merawat organ pencernaan</b>
+        <p style="margin:4px 0 0;color:#3c4a63;font-size:14px">Membiasakan pola makan bergizi seimbang, cukup air, cukup serat, dan hidup bersih.</p></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3 style="font-size:1.05rem;font-weight:900">🗺️ Alur Petualanganmu</h3>
+      <div class="flow">
+        <span class="step">📖 Baca Materi</span><span class="arrow">→</span>
+        <span class="step">🧪 Eksperimen Lab Maya</span><span class="arrow">→</span>
+        <span class="step">🧩 Susun Puzzle</span><span class="arrow">→</span>
+        <span class="step">🚀 Taklukkan 10 Titik Misi</span><span class="arrow">→</span>
+        <span class="step">👑 Final Challenge</span>
+      </div>
+      <div class="poin" style="margin-top:16px">
+        <b>🌟 Kata Kunci Misi:</b> mulut • faring • kerongkongan • lambung • usus halus • hati • kantung empedu • pankreas • usus besar • rektum • anus
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MATERI ================= -->
+<section class="page" id="page-materi">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">📖 Modul Pembelajaran Mandiri</span>
+      <h2>Alat Pencernaan Manusia</h2>
+      <p>Bacalah modul berikut dengan saksama. Kamu boleh membacanya sebelum atau saat mengerjakan misi.</p>
+    </div>
+
+    <div class="materi-layout">
+      <aside class="card toc">
+        <h4>Daftar Isi</h4>
+        <a href="#m-a">A. Pengertian Sistem Pencernaan</a>
+        <a href="#m-b">B. Organ &amp; Fungsinya</a>
+        <a href="#m-c">C. Urutan Perjalanan Makanan</a>
+        <a href="#m-d">D. Penyakit &amp; Gangguan</a>
+        <a href="#m-e">E. Cara Merawat Organ Pencernaan</a>
+        <a href="#m-ring">Ringkasan &amp; Poin Penting</a>
+        <button class="btn btn-ok btn-sm" id="btnMateriSelesai" style="margin-top:12px;width:100%;justify-content:center">✅ Tandai Materi Selesai</button>
+      </aside>
+
+      <article class="card materi-body">
+        <h3 id="m-a">A. Pengertian Sistem Pencernaan Manusia</h3>
+        <p>Manusia membutuhkan makanan dan minuman untuk memperoleh energi, pertumbuhan, memperbaiki sel-sel tubuh, serta menjaga tubuh agar dapat melakukan berbagai aktivitas. Makanan yang masuk ke dalam tubuh tidak dapat langsung digunakan oleh sel. Makanan harus diolah terlebih dahulu melalui proses yang disebut <strong>pencernaan</strong>.</p>
+        <p><strong>Sistem pencernaan manusia</strong> adalah serangkaian organ yang bekerja sama untuk menerima makanan, menghancurkannya menjadi bagian yang lebih kecil, menyerap zat gizi yang dibutuhkan tubuh, dan membuang sisa makanan yang tidak dapat digunakan.</p>
+        <p>Pencernaan makanan berlangsung melalui dua cara, yaitu <strong>pencernaan mekanik</strong> dan <strong>pencernaan kimiawi</strong>. Pencernaan mekanik adalah proses menghancurkan makanan menjadi lebih kecil secara fisik, misalnya ketika makanan dikunyah oleh gigi. Sementara itu, pencernaan kimiawi adalah proses menguraikan makanan menggunakan enzim atau zat kimia tertentu sehingga menjadi zat yang lebih sederhana dan mudah diserap tubuh.</p>
+        <p>Sistem pencernaan manusia terdiri atas <strong>saluran pencernaan</strong> dan <strong>organ pencernaan tambahan</strong>. Saluran pencernaan merupakan jalur yang dilalui makanan, sedangkan organ pencernaan tambahan membantu menghasilkan zat yang diperlukan dalam proses pencernaan.</p>
+
+        <h3 id="m-b">B. Organ-Organ Pencernaan Manusia dan Fungsinya</h3>
+
+        <h4>1. Mulut 👄</h4>
+        <p>Mulut merupakan tempat pertama masuknya makanan ke dalam tubuh. Di dalam mulut terdapat <strong>gigi, lidah, dan kelenjar ludah</strong> yang berperan penting dalam proses pencernaan.</p>
+        <p>Gigi berfungsi memotong, merobek, dan menghaluskan makanan. Lidah membantu mengatur posisi makanan ketika dikunyah, mencampurkan makanan dengan air liur, membantu proses menelan, serta memiliki fungsi sebagai alat pengecap.</p>
+        <p>Kelenjar ludah menghasilkan air liur yang mengandung <strong>enzim amilase</strong>. Enzim ini membantu memulai proses pencernaan karbohidrat. Oleh karena itu, mengunyah makanan dengan baik sangat penting agar makanan lebih mudah dicerna oleh organ berikutnya.</p>
+
+        <h4>2. Faring</h4>
+        <p>Faring atau tenggorokan merupakan bagian yang menghubungkan rongga mulut dengan kerongkongan. Faring menjadi tempat persilangan antara saluran makanan dan saluran pernapasan.</p>
+        <p>Ketika menelan, terdapat mekanisme yang membantu mengarahkan makanan menuju kerongkongan dan mencegah makanan masuk ke saluran pernapasan.</p>
+
+        <h4>3. Kerongkongan</h4>
+        <p>Kerongkongan atau <strong>esofagus</strong> adalah saluran berbentuk tabung yang menghubungkan faring dengan lambung. Kerongkongan tidak berfungsi untuk mencerna makanan secara utama, tetapi berfungsi mengantarkan makanan menuju lambung.</p>
+        <p>Makanan dapat bergerak melalui kerongkongan karena adanya <strong>gerak peristaltik</strong>, yaitu gerakan meremas dan mendorong yang dilakukan oleh otot-otot dinding kerongkongan.</p>
+
+        <h4>4. Lambung</h4>
+        <p>Lambung merupakan organ berbentuk seperti kantong yang terletak di bagian atas rongga perut. Lambung berfungsi menyimpan makanan sementara dan mencampurnya dengan cairan lambung.</p>
+        <p>Lambung menghasilkan asam lambung dan berbagai enzim yang membantu mencerna makanan, terutama protein. Asam lambung juga membantu membunuh atau menghambat sebagian mikroorganisme yang masuk bersama makanan.</p>
+        <p>Gerakan otot lambung mengaduk makanan sehingga makanan menjadi lebih halus dan bercampur dengan cairan lambung. Setelah mengalami proses di lambung, makanan berubah menjadi bentuk yang lebih cair dan kemudian diteruskan menuju usus halus.</p>
+
+        <h4>5. Usus Halus</h4>
+        <p>Usus halus merupakan bagian terpanjang dari saluran pencernaan. Usus halus menjadi tempat utama berlangsungnya pencernaan kimiawi dan penyerapan zat gizi.</p>
+        <p>Usus halus terdiri atas tiga bagian, yaitu <strong>duodenum (usus dua belas jari), jejunum (usus kosong), dan ileum (usus penyerapan)</strong>.</p>
+        <p>Di usus halus, makanan bercampur dengan cairan dari pankreas, hati, dan dinding usus. Karbohidrat, protein, dan lemak diuraikan menjadi bentuk yang lebih sederhana.</p>
+        <p>Dinding usus halus memiliki banyak lipatan dan jonjot usus atau <strong>vili</strong>. Struktur tersebut memperluas permukaan penyerapan sehingga zat gizi dapat diserap secara lebih efektif. Zat gizi yang telah diserap kemudian diedarkan melalui darah atau sistem limfa ke berbagai bagian tubuh.</p>
+
+        <h4>6. Hati</h4>
+        <p>Hati merupakan organ besar yang memiliki banyak fungsi penting bagi tubuh. Dalam sistem pencernaan, hati menghasilkan <strong>empedu</strong>.</p>
+        <p>Empedu membantu proses pencernaan lemak dengan cara mengemulsikan lemak menjadi butiran-butiran kecil sehingga lebih mudah dicerna oleh enzim.</p>
+        <p>Selain membantu pencernaan, hati juga berperan dalam menyimpan beberapa zat gizi, mengolah berbagai zat yang diserap dari makanan, serta membantu proses detoksifikasi atau pengolahan zat-zat tertentu di dalam tubuh.</p>
+
+        <h4>7. Kantung Empedu</h4>
+        <p>Kantung empedu adalah organ kecil yang berada di bawah hati. Fungsinya menyimpan dan memekatkan empedu yang dihasilkan oleh hati.</p>
+        <p>Ketika tubuh membutuhkan empedu untuk membantu mencerna lemak, kantung empedu akan mengeluarkannya ke usus dua belas jari.</p>
+
+        <h4>8. Pankreas</h4>
+        <p>Pankreas merupakan organ yang terletak di dekat lambung. Pankreas menghasilkan berbagai enzim pencernaan yang dialirkan ke usus halus.</p>
+        <p>Enzim dari pankreas membantu mencerna karbohidrat, protein, dan lemak. Pankreas juga memiliki fungsi lain yang berkaitan dengan pengaturan kadar gula darah melalui hormon tertentu.</p>
+
+        <h4>9. Usus Besar</h4>
+        <p>Setelah melalui usus halus, sisa makanan masuk ke usus besar. Usus besar terdiri atas beberapa bagian, termasuk sekum, kolon, dan rektum.</p>
+        <p>Fungsi utama usus besar adalah menyerap sebagian air dan elektrolit dari sisa makanan serta membantu pembentukan feses. Di dalam usus besar terdapat berbagai bakteri baik yang membantu kehidupan normal saluran pencernaan.</p>
+        <p>Sisa makanan yang semakin padat kemudian bergerak menuju rektum.</p>
+
+        <h4>10. Rektum</h4>
+        <p>Rektum merupakan bagian akhir dari usus besar sebelum anus. Rektum berfungsi sebagai tempat penyimpanan sementara feses sebelum dikeluarkan dari tubuh.</p>
+        <p>Ketika rektum terisi, tubuh menerima rangsangan untuk melakukan proses buang air besar.</p>
+
+        <h4>11. Anus</h4>
+        <p>Anus merupakan lubang terakhir dari saluran pencernaan. Anus berfungsi sebagai tempat keluarnya feses dari tubuh.</p>
+        <p>Pengeluaran feses disebut <strong>defekasi</strong>. Proses ini melibatkan kerja otot yang dapat membantu mengatur keluarnya feses.</p>
+
+        <div class="poin">
+          <b>🔎 Poin Penting Bab B:</b>
+          <ul style="margin:8px 0 0;padding-left:20px">
+            <li>Mulut, kerongkongan, lambung, usus halus, usus besar, rektum, dan anus = <b>saluran pencernaan</b>.</li>
+            <li>Hati, kantung empedu, dan pankreas = <b>organ pencernaan tambahan</b>.</li>
+            <li>Organ terpanjang saluran pencernaan adalah <b>usus halus</b>.</li>
+          </ul>
+        </div>
+
+        <h3 id="m-c">C. Urutan Perjalanan Makanan</h3>
+        <p>Secara sederhana, perjalanan makanan dalam tubuh dapat digambarkan sebagai berikut:</p>
+        <div class="rumus">Mulut → Faring → Kerongkongan → Lambung → Usus Halus → Usus Besar → Rektum → Anus</div>
+        <p style="margin-top:14px">Dalam perjalanan tersebut, makanan mengalami berbagai proses. Di mulut makanan dikunyah dan dicampur dengan air liur. Di kerongkongan makanan didorong menuju lambung. Di lambung makanan diaduk dan dicerna dengan bantuan cairan lambung. Selanjutnya, makanan masuk ke usus halus untuk mengalami pencernaan lebih lanjut dan penyerapan zat gizi.</p>
+        <p>Sisa makanan kemudian masuk ke usus besar. Air yang masih dapat digunakan tubuh diserap kembali. Sisa makanan dibentuk menjadi feses, disimpan sementara di rektum, kemudian dikeluarkan melalui anus.</p>
+
+        <h3 id="m-d">D. Penyakit dan Gangguan pada Organ Pencernaan</h3>
+        <p>Sistem pencernaan dapat mengalami berbagai penyakit dan gangguan. Gangguan tersebut dapat disebabkan oleh pola makan yang kurang baik, kurang menjaga kebersihan makanan, infeksi, kurang minum, kurang serat, maupun kebiasaan hidup yang tidak sehat.</p>
+
+        <div class="grid g2" style="margin:16px 0">
+          <div class="organ-card"><b>1. Diare</b><p>Buang air besar lebih sering dari biasanya dengan feses cair. Dapat disebabkan infeksi atau makanan terkontaminasi. Penderita perlu menjaga asupan cairan agar tidak dehidrasi.</p></div>
+          <div class="organ-card"><b>2. Sembelit (Konstipasi)</b><p>Sulit buang air besar karena feses keras. Berkaitan dengan kurang serat, kurang minum, kurang aktivitas fisik, atau kebiasaan menahan buang air besar.</p></div>
+          <div class="organ-card"><b>3. Gastritis (Maag)</b><p>Peradangan pada lapisan lambung. Gejalanya nyeri di bagian atas perut, mual, dan cepat merasa kenyang.</p></div>
+          <div class="organ-card"><b>4. GERD</b><p>Isi lambung termasuk asam naik kembali ke kerongkongan. Menyebabkan rasa panas terbakar di dada dan rasa asam di mulut.</p></div>
+          <div class="organ-card"><b>5. Keracunan Makanan</b><p>Terjadi setelah mengonsumsi makanan/minuman yang mengandung mikroorganisme berbahaya. Gejala: mual, muntah, sakit perut, dan diare.</p></div>
+          <div class="organ-card"><b>6. Radang Usus Buntu</b><p>Peradangan pada apendiks. Menyebabkan nyeri perut terutama di kanan bawah, disertai mual, muntah, demam, atau hilang nafsu makan.</p></div>
+          <div class="organ-card"><b>7. Wasir (Hemoroid)</b><p>Pembengkakan pembuluh darah di sekitar anus. Berkaitan dengan mengejan terlalu kuat dan konstipasi.</p></div>
+        </div>
+
+        <h3 id="m-e">E. Cara Merawat Organ Pencernaan</h3>
+        <p>Menjaga kesehatan sistem pencernaan perlu dilakukan setiap hari. Beberapa kebiasaan sederhana dapat membantu organ pencernaan bekerja dengan baik.</p>
+
+        <h4>1. Mengonsumsi Makanan Bergizi Seimbang</h4>
+        <p>Tubuh membutuhkan berbagai zat gizi, seperti karbohidrat, protein, lemak, vitamin, mineral, dan air. Makanlah dengan menu yang beragam agar kebutuhan nutrisi tubuh dapat terpenuhi. Perbanyak konsumsi sayur dan buah karena keduanya merupakan sumber serat, vitamin, mineral, dan berbagai zat penting lainnya.</p>
+
+        <h4>2. Mengonsumsi Makanan Berserat</h4>
+        <p>Serat membantu menjaga kesehatan saluran pencernaan dan membantu melancarkan buang air besar. Sumber serat antara lain sayuran, buah-buahan, kacang-kacangan, dan biji-bijian.</p>
+
+        <h4>3. Minum Air yang Cukup</h4>
+        <p>Air sangat penting bagi tubuh, termasuk untuk membantu proses pencernaan dan menjaga konsistensi feses. Kebutuhan cairan setiap orang dapat berbeda-beda, sehingga asupan perlu disesuaikan dengan kondisi tubuh dan aktivitas harian.</p>
+
+        <h4>4. Makan Secara Teratur dan Tidak Berlebihan</h4>
+        <p>Makan dengan porsi wajar dan jadwal teratur membantu lambung bekerja dengan nyaman. Hindari makan dalam jumlah sangat besar lalu langsung berbaring, karena dapat memicu naiknya asam lambung ke kerongkongan.</p>
+
+        <h4>5. Mengunyah Makanan dengan Baik</h4>
+        <p>Mengunyah hingga makanan halus meringankan kerja lambung dan usus. Semakin halus makanan, semakin luas permukaan yang dapat disentuh enzim sehingga pencernaan kimiawi berlangsung lebih cepat.</p>
+
+        <h4>6. Menjaga Kebersihan Makanan dan Alat Makan</h4>
+        <p>Cuci tangan sebelum makan, cuci bahan makanan dengan air bersih, dan pastikan makanan dimasak dengan matang. Kebiasaan ini mengurangi risiko diare dan keracunan makanan.</p>
+
+        <h4>7. Rutin Berolahraga dan Istirahat Cukup</h4>
+        <p>Aktivitas fisik membantu gerakan usus sehingga buang air besar lebih lancar. Istirahat yang cukup membuat tubuh, termasuk organ pencernaan, dapat memulihkan diri.</p>
+
+        <h4>8. Tidak Menunda Buang Air Besar</h4>
+        <p>Menahan buang air besar membuat feses menumpuk dan mengeras sehingga dapat menyebabkan sembelit maupun wasir. Biasakan buang air besar secara teratur.</p>
+
+        <h4>9. Menghindari Kebiasaan yang Mengganggu Lambung</h4>
+        <p>Kurangi makanan yang terlalu pedas, terlalu asam, atau minuman yang mengandung kafein berlebihan. Hindari juga makan tengah malam dalam porsi besar.</p>
+
+        <h3 id="m-ring">Ringkasan &amp; Poin Penting</h3>
+        <div class="poin">
+          <b>📌 Ringkasan Modul</b>
+          <ul style="margin:8px 0 0;padding-left:20px">
+            <li>Pencernaan = proses mengubah makanan menjadi zat gizi yang dapat diserap tubuh.</li>
+            <li>Pencernaan <b>mekanik</b> terjadi di mulut (gigi) dan lambung (gerakan otot); pencernaan <b>kimiawi</b> terjadi dengan bantuan enzim.</li>
+            <li>Urutan perjalanan makanan: <b>Mulut → Faring → Kerongkongan → Lambung → Usus Halus → Usus Besar → Rektum → Anus</b>.</li>
+            <li>Penyerapan zat gizi terjadi di <b>usus halus</b>, sedangkan penyerapan air terjadi di <b>usus besar</b>.</li>
+            <li>Hati menghasilkan <b>empedu</b> untuk mengemulsikan lemak.</li>
+            <li>Penyakit pencernaan umum: diare, sembelit, gastritis, GERD, keracunan makanan, radang usus buntu, dan wasir.</li>
+            <li>Perawatan: gizi seimbang, cukup serat, cukup air, higienis, olahraga teratur, dan tidak menunda BAB.</li>
+          </ul>
+        </div>
+        <div class="poin" style="border-left-color:var(--accent)">
+          <b>💡 Kata Kunci:</b>
+          <span class="tag">enzim amilase</span><span class="tag">gerak peristaltik</span>
+          <span class="tag">asam lambung</span><span class="tag">vili</span>
+          <span class="tag">empedu</span><span class="tag">defekasi</span>
+          <span class="tag">dehidrasi</span><span class="tag">serat</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAB MAYA ================= -->
+<section class="page" id="page-lab">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">🧪 Laboratorium Maya</span>
+      <h2>Simulasi Interaktif: Proses Pencernaan Makanan</h2>
+      <p>Uji bagaimana kekuatan mengunyah, kadar enzim &amp; asam lambung, serta kandungan serat memengaruhi kelancaran proses pencernaan makanan di dalam tubuh.</p>
+    </div>
+
+    <div class="lab-layout">
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:900;margin-bottom:14px">🎛️ Panel Variabel</h3>
+
+        <div class="slider-box">
+          <label>Kekuatan Mengunyah <span class="val"><span id="vChew">70</span>%</span></label>
+          <input type="range" id="sChew" min="10" max="100" step="5" value="70">
+          <div class="slider-desc">Seberapa halus makanan dihancurkan gigi di dalam mulut.</div>
+        </div>
+
+        <div class="slider-box">
+          <label>Kadar Enzim &amp; Asam Lambung <span class="val"><span id="vEnz">60</span>%</span></label>
+          <input type="range" id="sEnz" min="10" max="100" step="5" value="60">
+          <div class="slider-desc">Banyaknya cairan pencernaan yang menguraikan makanan secara kimiawi.</div>
+        </div>
+
+        <div class="slider-box">
+          <label>Kadar Serat &amp; Air Makanan <span class="val"><span id="vSer">50</span>%</span></label>
+          <input type="range" id="sSer" min="0" max="100" step="10" value="50">
+          <div class="slider-desc">Kandungan serat dan cairan yang membantu melancarkan pencernaan.</div>
+        </div>
+
+        <div style="display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" id="btnRun">▶️ Jalankan</button>
+          <button class="btn btn-ghost btn-sm" id="btnReset">🔄 Ulang</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="canvas-wrap">
+          <canvas id="labCanvas"></canvas>
+        </div>
+
+        <div class="grid g3" style="margin-top:16px">
+          <div class="metric">Kehalusan Makanan <span class="mv" id="mHalus">-</span></div>
+          <div class="metric">Laju Pencernaan <span class="mv" id="mLaju">-</span></div>
+          <div class="metric">Nutrisi Terserap <span class="mv" id="mNutrisi">0%</span></div>
+        </div>
+        <div class="bar"><i id="barNutrisi" style="width:0%"></i></div>
+        <div id="labStatus" class="status-box status-mid">Geser pengatur lalu tekan <b>Jalankan</b> untuk memulai simulasi.</div>
+
+        <div class="card" style="margin-top:16px">
+          <h4 style="margin:0 0 8px;font-weight:900;font-size:.98rem">🔍 Titik Pengamatan</h4>
+          <ul style="margin:0;padding-left:20px;color:#3c4a63;font-size:14px">
+            <li>Semakin kuat dan halus kunyahan, semakin cepat makanan dicerna organ berikutnya.</li>
+            <li>Kadar enzim &amp; asam lambung yang cukup membuat pemecahan zat gizi berlangsung efektif.</li>
+            <li>Makanan yang kaya serat dan air membuat sisa makanan mudah bergerak menuju usus besar.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PUZZLE ================= -->
+<section class="page" id="page-puzzle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">🧩 Game Puzzle Drag &amp; Drop</span>
+      <h2>Susun Urutan Perjalanan Makanan!</h2>
+      <p>Seret (drag) setiap kartu konsep ke slot yang tepat agar urutan perjalanan makanan tersusun logis dan runtut.</p>
+    </div>
+
+    <div class="card">
+      <div class="slots" id="puzzleSlots"></div>
+      <h4 style="font-size:.92rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Kartu Konsep</h4>
+      <div class="pool" id="puzzlePool"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn btn-primary btn-sm" id="btnCekPuzzle">✅ Periksa Susunan</button>
+        <button class="btn btn-ghost btn-sm" id="btnHintPuzzle">💡 Tampilkan Petunjuk</button>
+        <button class="btn btn-ghost btn-sm" id="btnResetPuzzle">🔄 Acak Ulang</button>
+      </div>
+
+      <div id="puzzleFeedback" class="feedback"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= EVALUASI ================= -->
+<section class="page" id="page-evaluasi">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">🚀 Peta Petualangan &amp; Evaluasi</span>
+      <h2>Misi Pengetahuan Si Pencerna</h2>
+      <p>Selesaikan 10 titik misi secara berurutan, lalu taklukkan <b>Final Challenge</b> untuk mendapatkan gelar 👑 Master Si Pencerna.</p>
+    </div>
+
+    <!-- GATE LOGIN -->
+    <div id="evalGate">
+      <div class="card gate">
+        <h3 style="font-weight:900">🔐 Isi Identitas &amp; Kunci Evaluasi</h3>
+        <p style="color:var(--muted);font-size:14px">Kamu hanya perlu mengisi data ini saat akan mengerjakan soal evaluasi.</p>
+        <div class="field">
+          <label for="inNama">Nama Siswa</label>
+          <input type="text" id="inNama" placeholder="Contoh: Rani Putri" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="inKelas">Kelas</label>
+          <input type="text" id="inKelas" placeholder="Contoh: 6A" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="inKunci">Kunci Evaluasi</label>
+          <input type="password" id="inKunci" placeholder="Masukkan kunci evaluasi">
+          <div class="hint-key">Kunci evaluasi: <b>@1</b></div>
+        </div>
+        <button class="btn btn-primary" id="btnMasukEval" style="width:100%;justify-content:center">🚀 Mulai Kerjakan Soal</button>
+      </div>
+    </div>
+
+    <!-- ARENA -->
+    <div id="evalArena" style="display:none">
+      <div class="eval-layout">
+
+        <!-- PANEL KIRI -->
+        <div class="card profile-card">
+          <h4 style="font-weight:900;font-size:.95rem;margin-bottom:10px">👤 Profil Penjelajah</h4>
+          <div id="profilBox" style="font-size:14px;color:#33415c;line-height:1.7"></div>
+          <div class="badge-list" id="badgeList"></div>
+          <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+          <div style="font-size:13.6px;font-weight:800;color:#33415c">Progres Misi</div>
+          <div class="bar" style="margin-top:6px"><i id="barProgres" style="width:0%"></i></div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:5px" id="txtProgres">0 / 10 titik selesai</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+            <button class="btn btn-ghost btn-sm" id="btnGuru">👩‍🏫 Mode Guru</button>
+            <button class="btn btn-ghost btn-sm" id="btnKeluar">🚪 Ganti Siswa</button>
+          </div>
+        </div>
+
+        <!-- PANEL KANAN -->
+        <div>
+          <div id="mapPanel">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                <h3 style="font-weight:900;font-size:1.05rem;margin:0">🗺️ Peta 10 Titik Misi</h3>
+                <span class="chip" id="chipNyawa">❤️❤️❤️</span>
+              </div>
+              <div class="map-grid" id="mapNodes"></div>
+            </div>
+          </div>
+
+          <div id="qPanel" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="dev">Dikembangkan oleh Fitria Nilawati</div>
+  <small>Multimedia Pembelajaran Interaktif (MPI) • IPAS Fase C • Materi: Alat Pencernaan Manusia</small>
+  <small>© 2026 — Media ini dapat digunakan untuk pembelajaran mandiri maupun di kelas.</small>
+</footer>
+
+<!-- ================= MODAL KUNCI ================= -->
+<div class="modal" id="modalKunci">
+  <div class="modal-box" style="max-width:420px">
+    <h3>🔐 Kunci Terkunci</h3>
+    <p style="color:var(--muted);font-size:14px">Masukkan kunci untuk membuka fitur ini.</p>
+    <div class="field">
+      <input type="password" id="inpKunciModal" placeholder="Masukkan kunci">
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end">
+      <button class="modal-close" data-close="modalKunci">Batal</button>
+      <button class="btn btn-primary btn-sm" id="btnKunciOk">Buka</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL PEMBAHASAN ================= -->
+<div class="modal" id="modalPembahasan">
+  <div class="modal-box">
+    <h3>📘 Pembahasan</h3>
+    <div id="pembahasanBody" style="font-size:14.5px;color:#33415c"></div>
+    <div style="text-align:right;margin-top:16px">
+      <button class="modal-close" data-close="modalPembahasan">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL GURU ================= -->
+<div class="modal" id="modalGuru">
+  <div class="modal-box">
+    <h3>👩‍🏫 Mode Guru</h3>
+    <div id="guruBody" style="font-size:14px;color:#33415c"></div>
+    <div style="text-align:right;margin-top:16px">
+      <button class="modal-close" data-close="modalGuru">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL KHUSUS ================= -->
+<div class="modal" id="modalInfo">
+  <div class="modal-box" style="max-width:480px">
+    <div id="infoBody"></div>
+    <div style="text-align:right;margin-top:16px">
+      <button class="modal-close" data-close="modalInfo">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   STATE & PENYIMPANAN
+   ========================================================= */
+const LS_KEY = 'mpi_pencerna_fitria_v1';
+const state = {
+  nama: '', kelas: '',
+  lives: 3, score: 0, coins: 0,
+  badges: [], completed: {}, finalDone: false, materiRead: false
+};
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const o = JSON.parse(raw); Object.assign(state, o); }
+  }catch(e){}
+}
+
+/* =========================================================
+   BANK SOAL
+   ========================================================= */
+const QUESTIONS = [
+  {
+    id:1, icon:'👄', concept:'Organ Pertama', level:'LOTS (C1-C2)', badge:'🥉 Pengunyah Hebat',
+    question:'Makanan yang masuk ke dalam tubuh pertama kali melewati organ ....',
+    options:['Mulut','Kerongkongan','Lambung','Usus halus'],
+    correct:0, score:10, coins:6, time_limit:45,
+    hint:'Di organ ini makanan dikunyah oleh gigi dan dicampur air liur.',
+    explanation:'Mulut adalah pintu masuk pertama makanan. Di dalam mulut terjadi pencernaan mekanik oleh gigi dan pencernaan kimiawi oleh enzim amilase dari air liur.'
+  },
+  {
+    id:2, icon:'💧', concept:'Enzim Amilase', level:'LOTS (C1-C2)', badge:'🥈 Detektif Amilase',
+    question:'Enzim amilase yang memulai pencernaan karbohidrat di dalam mulut dihasilkan oleh ....',
+    options:['Kelenjar ludah','Kelenjar tiroid','Dinding lambung','Kantung empedu'],
+    correct:0, score:10, coins:6, time_limit:45,
+    hint:'Zat ini membuat nasi terasa manis ketika dikunyah lama.',
+    explanation:'Kelenjar ludah menghasilkan air liur yang mengandung enzim amilase. Enzim ini mengubah sebagian karbohidrat (pati) menjadi zat gula yang lebih sederhana.'
+  },
+  {
+    id:3, icon:'🌀', concept:'Gerak Peristaltik', level:'MOTS (C3)', badge:'🥇 Ahli Peristaltik',
+    question:'Gerakan meremas dan mendorong makanan yang terjadi pada dinding kerongkongan disebut ....',
+    options:['Gerak peristaltik','Gerak refleks','Gerak osmosis','Gerak difusi'],
+    correct:0, score:10, coins:7, time_limit:45,
+    hint:'Gerakan ini membuat makanan bisa turun menuju lambung meskipun kamu menelan sambil berdiri.',
+    explanation:'Gerak peristaltik adalah gerakan otot dinding kerongkongan yang meremas dan mendorong makanan menuju lambung. Kerongkongan sendiri tidak mencerna makanan secara utama.'
+  },
+  {
+    id:4, icon:'🫀', concept:'Hati & Empedu', level:'MOTS (C3)', badge:'🏅 Penjaga Hati',
+    question:'Organ yang menghasilkan empedu untuk mengemulsikan lemak adalah ....',
+    options:['Hati','Pankreas','Kantung empedu','Lambung'],
+    correct:0, score:10, coins:7, time_limit:45,
+    hint:'Kantung empedu hanya menyimpan, bukan menghasilkan.',
+    explanation:'Hati menghasilkan empedu. Empedu mengemulsikan lemak menjadi butiran kecil agar lebih mudah dicerna enzim. Kantung empedu hanya menyimpan dan memekatkan empedu tersebut.'
+  },
+  {
+    id:5, icon:'🔬', concept:'Penyerapan Gizi', level:'MOTS (C3)', badge:'🏅 Master Vili',
+    question:'Bagian usus halus yang berperan utama sebagai tempat penyerapan zat gizi adalah ....',
+    options:['Duodenum (usus dua belas jari)','Jejunum (usus kosong)','Ileum (usus penyerapan)','Sekum'],
+    correct:2, score:10, coins:8, time_limit:45,
+    hint:'Nama lain bagian ini secara harfiah berarti "penyerapan".',
+    explanation:'Usus halus terdiri atas duodenum, jejunum, dan ileum. Ileum disebut usus penyerapan karena di sinilah sebagian besar zat gizi diserap melalui jonjot usus (vili).'
+  },
+  {
+    id:6, icon:'🩺', concept:'Gangguan Pencernaan', level:'HOTS (C4-C6)', badge:'🛡️ Pejuang Serat',
+    question:'Rian sering menunda buang air besar dan jarang makan sayur serta buah. Gangguan pencernaan yang paling mungkin dialaminya adalah ....',
+    options:['Diare','Sembelit','Maag','Keracunan makanan'],
+    correct:1, score:10, coins:8, time_limit:45,
+    hint:'Perhatikan kebiasaan menahan BAB dan kurang serat.',
+    explanation:'Kurang serat, kurang minum, dan kebiasaan menahan buang air besar membuat feses mengeras sehingga sulit dikeluarkan. Kondisi ini disebut sembelit atau konstipasi.'
+  },
+  {
+    id:7, icon:'🧠', concept:'Analisis Pencernaan', level:'HOTS (C4-C6)', badge:'🧠 Analis Cerdas',
+    question:'Mengapa makanan yang dikunyah dengan baik lebih mudah dicerna oleh tubuh?',
+    options:[
+      'Karena makanan menjadi lebih halus dan bercampur enzim sehingga mempercepat kerja organ berikutnya',
+      'Karena makanan menjadi lebih keras sehingga lambung bekerja lebih kuat',
+      'Karena makanan langsung diserap di dalam mulut',
+      'Karena air liur mengubah seluruh makanan menjadi gula'
+    ],
+    correct:0, score:10, coins:9, time_limit:45,
+    hint:'Pikirkan hubungan antara luas permukaan makanan dan kerja enzim.',
+    explanation:'Mengunyah membuat makanan lebih halus dan memperluas permukaannya sehingga enzim lebih mudah bekerja. Makanan juga tercampur air liur yang mengandung amilase, sehingga lambung dan usus bekerja lebih ringan.'
+  },
+  {
+    id:8, icon:'💧', concept:'Studi Kasus Diare', level:'LITERASI', badge:'💧 Pahlawan Hidrasi',
+    question:'Bu Guru membawa seorang siswa ke UKS. Sejak pagi siswa itu sudah lima kali buang air besar dengan feses cair. Tindakan pertolongan pertama yang paling tepat adalah ....',
+    options:[
+      'Memberi minum cairan oralit agar tidak mengalami dehidrasi',
+      'Memberi makanan pedas agar tubuh berkeringat',
+      'Menyuruhnya berolahraga ringan agar cepat sembuh',
+      'Memberinya obat sakit kepala'
+    ],
+    correct:0, score:10, coins:9, time_limit:45,
+    hint:'Diare membuat tubuh kehilangan banyak cairan.',
+    explanation:'Gejala tersebut mengarah pada diare. Bahaya utama diare adalah kehilangan cairan (dehidrasi), sehingga penderita perlu segera diberi cairan, misalnya oralit, dan bila berlanjut harus diperiksa tenaga kesehatan.'
+  },
+  {
+    id:9, icon:'🔍', concept:'Detektif GERD', level:'HOTS (C4-C6)', badge:'🔍 Detektif GERD',
+    question:'Rani sering makan dalam porsi besar lalu langsung berbaring. Beberapa hari ini ia merasakan panas seperti terbakar di dada dan rasa asam di mulut. Gangguan yang paling mungkin dialami Rani adalah ....',
+    options:['Gastritis','GERD','Keracunan makanan','Radang usus buntu'],
+    correct:1, score:10, coins:10, time_limit:45,
+    hint:'Perhatikan keluhan "rasa panas di dada" dan "rasa asam di mulut".',
+    explanation:'GERD terjadi ketika isi lambung termasuk asam lambung naik kembali ke kerongkongan. Kebiasaan makan porsi besar lalu langsung berbaring dapat memperburuk keluhan ini.'
+  },
+  {
+    id:10, icon:'📊', concept:'Merawat Pencernaan', level:'HOTS (C4-C6)', badge:'🌟 Bintang Pencernaan',
+    question:'Perhatikan kebiasaan berikut! (1) minum air yang cukup, (2) sering menunda buang air besar, (3) makan makanan berserat, (4) sering mengonsumsi makanan pedas berlebihan. Kebiasaan yang dapat menjaga kesehatan organ pencernaan ditunjukkan oleh nomor ....',
+    options:['(1) dan (3)','(1) dan (2)','(2) dan (4)','(3) dan (4)'],
+    correct:0, score:10, coins:10, time_limit:45,
+    hint:'Pilih kebiasaan yang bersifat positif bagi saluran pencernaan.',
+    explanation:'Minum air cukup dan makan makanan berserat membantu melancarkan pencernaan serta menjaga feses tetap lunak. Menunda BAB dan makanan pedas berlebihan justru dapat mengganggu kesehatan pencernaan.'
+  }
+];
+
+const FINAL_CHALLENGE = [
+  {
+    id:'F1', icon:'👑', concept:'Final 1', level:'HOTS (C4-C6)', badge:'👑 Master Si Pencerna',
+    question:'Seorang siswa mengunyah nasi selama 30 detik, lalu mulutnya terasa manis. Mengapa hal itu terjadi?',
+    options:[
+      'Karena enzim amilase dalam air liur mengubah sebagian pati menjadi zat gula sederhana',
+      'Karena nasi mengandung gula yang langsung larut di air liur',
+      'Karena gigi mengeluarkan zat manis saat mengunyah',
+      'Karena lambung sudah mulai mencerna nasi'
+    ],
+    correct:0, score:20, coins:15, time_limit:60,
+    hint:'Ingat fungsi enzim amilase di dalam mulut.',
+    explanation:'Air liur mengandung enzim amilase yang menguraikan pati (karbohidrat kompleks) menjadi zat gula yang lebih sederhana, sehingga nasi terasa manis.'
+  },
+  {
+    id:'F2', icon:'🗺️', concept:'Final 2', level:'MOTS (C3)', badge:'👑 Master Si Pencerna',
+    question:'Urutan perjalanan makanan yang benar di dalam tubuh manusia adalah ....',
+    options:[
+      'Mulut → kerongkongan → lambung → usus halus → usus besar → anus',
+      'Mulut → lambung → kerongkongan → usus halus → usus besar → anus',
+      'Mulut → kerongkongan → usus halus → lambung → usus besar → anus',
+      'Mulut → faring → usus besar → lambung → usus halus → anus'
+    ],
+    correct:0, score:20, coins:15, time_limit:60,
+    hint:'Faring dan kerongkongan berada sebelum lambung.',
+    explanation:'Setelah melewati faring, makanan masuk ke kerongkongan, lalu lambung, usus halus, usus besar, rektum, dan akhirnya dikeluarkan melalui anus.'
+  },
+  {
+    id:'F3', icon:'🔬', concept:'Final 3', level:'HOTS (C4-C6)', badge:'👑 Master Si Pencerna',
+    question:'Dinding usus halus memiliki banyak lipatan dan jonjot usus (vili). Apa manfaat utama struktur tersebut?',
+    options:[
+      'Memperluas permukaan penyerapan sehingga zat gizi lebih efektif diserap',
+      'Mempercepat keluarnya feses dari dalam tubuh',
+      'Menghasilkan asam untuk membunuh kuman',
+      'Menyimpan makanan sebelum masuk ke lambung'
+    ],
+    correct:0, score:20, coins:15, time_limit:60,
+    hint:'Semakin luas permukaan, semakin banyak zat gizi yang dapat diserap.',
+    explanation:'Lipatan dan vili pada dinding usus halus memperluas permukaan penyerapan. Dengan demikian, zat gizi dapat diserap lebih banyak dan lebih cepat, lalu diedarkan melalui darah atau sistem limfa.'
+  }
+];
+
+/* =========================================================
+   UTILITAS
+   ========================================================= */
+function $(s, r=document){ return r.querySelector(s); }
+function $$(s, r=document){ return Array.from(r.querySelectorAll(s)); }
+let toastTimer=null;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function openModal(id){ $('#'+id).classList.add('open'); }
+function closeModal(id){ $('#'+id).classList.remove('open'); }
+$$('.modal').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+$$('[data-close]').forEach(b=> b.addEventListener('click', ()=> closeModal(b.dataset.close)));
+
+/* =========================================================
+   NAVIGASI
+   ========================================================= */
+function go(page){
+  $$('.page').forEach(p=> p.classList.toggle('active', p.id === 'page-'+page));
+  $$('.navbtn').forEach(b=> b.classList.toggle('active', b.dataset.page === page));
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(page === 'lab'){ fitCanvas(); running = true; lastTs = 0; }
+  if(page === 'evaluasi'){ renderEval(); }
+}
+$$('.navbtn').forEach(b=> b.addEventListener('click', ()=> go(b.dataset.page)));
+$$('[data-go]').forEach(b=> b.addEventListener('click', ()=> go(b.dataset.go)));
+
+/* =========================================================
+   HUD
+   ========================================================= */
+function updateHUD(){
+  $('#hudScore').textContent = state.score;
+  $('#hudCoins').textContent = state.coins;
+  $('#hudBadge').textContent = state.badges.length;
+  const full = '❤️'.repeat(Math.max(0, state.lives));
+  const empty = '🖤'.repeat(Math.max(0, 3 - state.lives));
+  $('#hudLives').textContent = full + empty;
+  const chip = $('#chipNyawa'); if(chip) chip.textContent = full + empty;
+}
+
+/* =========================================================
+   LAB MAYA (CANVAS)
+   ========================================================= */
+const canvas = $('#labCanvas');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, running = false, lastTs = 0, particles = [], spawnAcc = 0, nutrienCount = 0, totalSpawn = 0;
+
+const LAB = { chew:70, enz:60, ser:50 };
+
+const STATIONS = [
+  { x:0.09, y:0.20, name:'Mulut',        emo:'👄', color:'#f59e0b' },
+  { x:0.24, y:0.44, name:'Kerongkongan', emo:'🥤', color:'#38bdf8' },
+  { x:0.40, y:0.70, name:'Lambung',      emo:'🫙', color:'#a78bfa' },
+  { x:0.62, y:0.76, name:'Usus Halus',   emo:'🌀', color:'#22c55e' },
+  { x:0.84, y:0.50, name:'Usus Besar',   emo:'🧬', color:'#0ea5e9' },
+  { x:0.90, y:0.20, name:'Anus',         emo:'🚪', color:'#94a3b8' }
+];
+
+function fitCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  W = rect.width; H = rect.height;
+}
+window.addEventListener('resize', ()=>{ fitCanvas(); });
+
+function labEff(){
+  return 0.40*(LAB.chew/100) + 0.35*(LAB.enz/100) + 0.25*(LAB.ser/100);
+}
+
+function pathPoint(t){
+  // t 0..1 sepanjang polyline STATIONS
+  const n = STATIONS.length - 1;
+  const seg = Math.min(n - 0.0001, t * n);
+  const i = Math.floor(seg);
+  const f = seg - i;
+  const a = STATIONS[i], b = STATIONS[i+1];
+  return {
+    x: (a.x + (b.x - a.x) * f) * W,
+    y: (a.y + (b.y - a.y) * f) * H,
+    segIndex: i
+  };
+}
+
+function spawnParticle(){
+  const eff = labEff();
+  particles.push({
+    t: 0,
+    size: 9 + Math.random()*3,
+    speed: 0.055 + 0.10 * eff,
+    wob: Math.random()*Math.PI*2,
+    absorbed: false
+  });
+  totalSpawn++;
+}
+
+function updateLabMetrics(){
+  const eff = labEff();
+  const halus = Math.round((LAB.chew/100)*100);
+  $('#mHalus').textContent = halus + '%';
+  $('#mLaju').textContent = Math.round(eff*100) + '%';
+  const nut = totalSpawn ? Math.round((nutrienCount/totalSpawn)*100) : 0;
+  $('#mNutrisi').textContent = nut + '%';
+  $('#barNutrisi').style.width = nut + '%';
+
+  const box = $('#labStatus');
+  if(!running && totalSpawn === 0){
+    box.className = 'status-box status-mid';
+    box.innerHTML = 'Geser pengatur lalu tekan <b>Jalankan</b> untuk memulai simulasi.';
+  } else if(eff >= 0.72){
+    box.className = 'status-box status-good';
+    box.innerHTML = '✅ <b>Pencernaan sangat lancar!</b> Makanan halus, enzim cukup, dan serat memadai sehingga zat gizi mudah diserap tubuh.';
+  } else if(eff >= 0.48){
+    box.className = 'status-box status-mid';
+    box.innerHTML = '⚠️ <b>Pencernaan cukup baik</b>, tetapi masih bisa ditingkatkan. Tambah kunyahan, enzim, atau serat agar penyerapan lebih optimal.';
+  } else {
+    box.className = 'status-box status-bad';
+    box.innerHTML = '❗ <b>Pencernaan melambat.</b> Makanan terlalu kasar / enzim kurang / serat rendah sehingga sisa makanan sulit diproses dan dapat memicu sembelit.';
+  }
+}
+
+function drawLab(){
+  if(!W || !H) return;
+  ctx.clearRect(0,0,W,H);
+
+  // latar
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#f8fbff'); g.addColorStop(1,'#eaf2ff');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+  // jalur
+  ctx.save();
+  ctx.setLineDash([7,9]);
+  ctx.strokeStyle = '#c3d4f5';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(STATIONS[0].x*W, STATIONS[0].y*H);
+  for(let i=1;i<STATIONS.length;i++) ctx.lineTo(STATIONS[i].x*W, STATIONS[i].y*H);
+  ctx.stroke();
+  ctx.restore();
+
+  // organ
+  STATIONS.forEach((s,i)=>{
+    const x = s.x*W, y = s.y*H;
+    const r = Math.min(30, Math.max(20, W*0.045));
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(31,64,140,.18)';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = s.color;
+    ctx.stroke();
+
+    ctx.font = `${Math.round(r*0.95)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.emo, x, y+1);
+
+    ctx.font = '700 11.5px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#33415c';
+    ctx.textBaseline = 'top';
+    ctx.fillText(s.name, x, y + r + 5);
+  });
+
+  // partikel makanan
+  particles.forEach(p=>{
+    const pt = pathPoint(Math.min(1, p.t));
+    const wob = Math.sin(p.wob + p.t*12) * 3;
+    const shrink = 1 - 0.55 * p.t * (0.5 + labEff()*0.5);
+    const rad = Math.max(2.2, p.size * shrink);
+    const grd = ctx.createRadialGradient(pt.x, pt.y+wob, 0, pt.x, pt.y+wob, rad);
+    grd.addColorStop(0, '#fbbf24');
+    grd.addColorStop(1, '#f97316');
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y + wob, rad, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  });
+
+  // judul kecil
+  ctx.font = '800 12px "Segoe UI", sans-serif';
+  ctx.fillStyle = '#8ea2c0';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('SIMULASI PERJALANAN MAKANAN', 14, 12);
+}
+
+function labLoop(ts){
+  requestAnimationFrame(labLoop);
+  if(!lastTs) lastTs = ts;
+  const dt = Math.min(0.05, (ts - lastTs)/1000 || 0);
+  lastTs = ts;
+
+  if(running){
+    spawnAcc += dt;
+    const interval = 0.55 - 0.35 * labEff();
+    if(spawnAcc > interval){ spawnAcc = 0; spawnParticle(); }
+
+    particles.forEach(p=>{
+      p.t += p.speed * dt * 1.6;
+      if(!p.absorbed && p.t >= 0.62){ p.absorbed = true; nutrienCount++; }
+    });
+    particles = particles.filter(p=> p.t < 1.05);
+    updateLabMetrics();
+  }
+  drawLab();
+}
+requestAnimationFrame(labLoop);
+
+function bindLab(){
+  const map = [['sChew','vChew','chew'],['sEnz','vEnz','enz'],['sSer','vSer','ser']];
+  map.forEach(([sid,vid,key])=>{
+    const el = $('#'+sid);
+    el.addEventListener('input', ()=>{
+      LAB[key] = +el.value;
+      $('#'+vid).textContent = el.value;
+      updateLabMetrics();
+    });
+  });
+  $('#btnRun').addEventListener('click', ()=>{
+    running = true; lastTs = 0; spawnAcc = 0;
+    particles = []; nutrienCount = 0; totalSpawn = 0;
+    updateLabMetrics();
+    toast('🧪 Simulasi dijalankan!');
+  });
+  $('#btnReset').addEventListener('click', ()=>{
+    running = false;
+    particles = []; nutrienCount = 0; totalSpawn = 0;
+    LAB.chew = 70; LAB.enz = 60; LAB.ser = 50;
+    $('#sChew').value = 70; $('#vChew').textContent = 70;
+    $('#sEnz').value = 60;  $('#vEnz').textContent = 60;
+    $('#sSer').value = 50;  $('#vSer').textContent = 50;
+    $('#mHalus').textContent = '-'; $('#mLaju').textContent = '-';
+    $('#mNutrisi').textContent = '0%'; $('#barNutrisi').style.width = '0%';
+    $('#labStatus').className = 'status-box status-mid';
+    $('#labStatus').innerHTML = 'Geser pengatur lalu tekan <b>Jalankan</b> untuk memulai simulasi.';
+    toast('🔄 Simulasi diulang.');
+  });
+}
+bindLab();
+
+/* =========================================================
+   PUZZLE DRAG & DROP
+   ========================================================= */
+const PUZZLE_ITEMS = [
+  { id:'a', label:'Mulut — mengunyah & enzim amilase', hint:'Tempat pertama makanan masuk' },
+  { id:'b', label:'Faring & Kerongkongan — gerak peristaltik', hint:'Makanan didorong menuju lambung' },
+  { id:'c', label:'Lambung — asam & enzim pencerna protein', hint:'Makanan diaduk menjadi lebih halus' },
+  { id:'d', label:'Usus Halus — penyerapan zat gizi', hint:'Terjadi di vili usus' },
+  { id:'e', label:'Usus Besar — penyerapan air & pembentukan feses', hint:'Sisa makanan menjadi padat' },
+  { id:'f', label:'Rektum & Anus — proses defekasi', hint:'Feses dikeluarkan dari tubuh' }
+];
+const PUZZLE_ORDER = ['a','b','c','d','e','f'];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+let dragState = null;
+
+function buildPuzzle(){
+  const slots = $('#puzzleSlots');
+  slots.innerHTML = PUZZLE_ITEMS.map((_,i)=>
+    `<div class="slot" data-slot="${i}">
+       <span class="slot-no">${i+1}</span>
+       <span class="slot-content" style="flex:1"></span>
+     </div>`).join('');
+
+  const pool = $('#puzzlePool');
+  pool.innerHTML = '';
+  shuffle(PUZZLE_ITEMS).forEach(it=>{
+    const el = document.createElement('div');
+    el.className = 'pcard';
+    el.dataset.id = it.id;
+    el.textContent = it.label;
+    el.addEventListener('pointerdown', startDrag);
+    pool.appendChild(el);
+  });
+  $('#puzzleFeedback').classList.remove('show');
+  $$('.slot').forEach(s=> s.classList.remove('correct','wrong','filled'));
+}
+
+function startDrag(e){
+  const card = e.currentTarget;
+  if(card.classList.contains('placed')) return;
+  e.preventDefault();
+  const rect = card.getBoundingClientRect();
+  const ghost = card.cloneNode(true);
+  ghost.className = 'ghost';
+  ghost.style.width = rect.width + 'px';
+  ghost.style.left = rect.left + 'px';
+  ghost.style.top = rect.top + 'px';
+  document.body.appendChild(ghost);
+  card.classList.add('dragging');
+
+  dragState = { card, ghost, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+
+  document.addEventListener('pointermove', onDragMove, { passive:false });
+  document.addEventListener('pointerup', endDrag);
+}
+
+function onDragMove(e){
+  if(!dragState) return;
+  e.preventDefault();
+  dragState.ghost.style.left = (e.clientX - dragState.offsetX) + 'px';
+  dragState.ghost.style.top  = (e.clientY - dragState.offsetY) + 'px';
+  $$('.slot').forEach(s=> s.classList.remove('over'));
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const slot = el && el.closest ? el.closest('.slot') : null;
+  if(slot && !slot.dataset.filled) slot.classList.add('over');
+}
+
+function endDrag(e){
+  if(!dragState) return;
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', endDrag);
+  const { card, ghost } = dragState;
+  ghost.remove();
+  card.classList.remove('dragging');
+  $$('.slot').forEach(s=> s.classList.remove('over'));
+
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const slot = el && el.closest ? el.closest('.slot') : null;
+
+  if(slot && !slot.dataset.filled){
+    placeCard(card, slot);
+  }
+  dragState = null;
+}
+
+function placeCard(card, slot){
+  const content = $('.slot-content', slot);
+  content.innerHTML = '';
+  const clone = document.createElement('div');
+  clone.className = 'pcard placed';
+  clone.dataset.id = card.dataset.id;
+  clone.textContent = card.textContent;
+  clone.addEventListener('pointerdown', ev=>{
+    // tarik kembali ke kolam
+    ev.preventDefault();
+    const id = clone.dataset.id;
+    clone.remove();
+    slot.dataset.filled = '';
+    slot.classList.remove('filled','correct','wrong');
+    const back = document.createElement('div');
+    back.className = 'pcard';
+    back.dataset.id = id;
+    back.textContent = clone.textContent;
+    back.addEventListener('pointerdown', startDrag);
+    $('#puzzlePool').appendChild(back);
+  });
+  content.appendChild(clone);
+  slot.dataset.filled = '1';
+  slot.classList.add('filled');
+  card.remove();
+}
+
+function cekPuzzle(){
+  const slots = $$('.slot');
+  let semuaTerisi = true, semuaBenar = true;
+  slots.forEach((slot,i)=>{
+    const card = $('.pcard', slot);
+    slot.classList.remove('correct','wrong');
+    if(!card){ semuaTerisi = false; return; }
+    if(card.dataset.id === PUZZLE_ORDER[i]){ slot.classList.add('correct'); }
+    else { slot.classList.add('wrong'); semuaBenar = false; }
+  });
+  const fb = $('#puzzleFeedback');
+  fb.classList.add('show');
+  if(!semuaTerisi){
+    fb.className = 'feedback show fb-no';
+    fb.innerHTML = '⚠️ Masih ada slot yang kosong. Seret semua kartu konsep ke dalam slot terlebih dahulu ya!';
+  } else if(semuaBenar){
+    fb.className = 'feedback show fb-ok';
+    fb.innerHTML = '🎉 <b>Luar biasa!</b> Rangkaian tahapan perjalanan makanan telah tersusun dengan tepat dan utuh.<br><small>Mulut → Faring &amp; Kerongkongan → Lambung → Usus Halus → Usus Besar → Rektum &amp; Anus</small>';
+    state.coins += 15;
+    if(!state.badges.includes('🧩 Perakit Ulung')) state.badges.push('🧩 Perakit Ulung');
+    save(); updateHUD(); renderProfil();
+    toast('🎉 Puzzle benar! +15 koin');
+  } else {
+    fb.className = 'feedback show fb-no';
+    fb.innerHTML = '❌ Belum tepat. Perhatikan kotak berwarna merah, lalu ingat kembali urutan perjalanan makanan dari mulut hingga anus.';
+  }
+}
+
+function bindPuzzle(){
+  $('#btnCekPuzzle').addEventListener('click', cekPuzzle);
+  $('#btnResetPuzzle').addEventListener('click', ()=>{ buildPuzzle(); toast('🔄 Kartu diacak ulang.'); });
+  $('#btnHintPuzzle').addEventListener('click', ()=>{
+    const hints = shuffle(PUZZLE_ITEMS).slice(0,3).map(it=> '• '+it.hint).join('<br>');
+    toast('💡 Petunjuk muncul di bawah');
+    const fb = $('#puzzleFeedback');
+    fb.className = 'feedback show fb-hint';
+    fb.innerHTML = '<b>💡 Petunjuk:</b><br>' + hints;
+  });
+}
+bindPuzzle();
+buildPuzzle();
+
+/* =========================================================
+   MATERI
+   ========================================================= */
+$('#btnMateriSelesai').addEventListener('click', ()=>{
+  if(state.materiRead){ toast('✅ Materi sudah kamu tandai selesai.'); return; }
+  state.materiRead = true;
+  state.coins += 10;
+  if(!state.badges.includes('📖 Pembaca Tekun')) state.badges.push('📖 Pembaca Tekun');
+  save(); updateHUD(); renderProfil();
+  toast('📖 Hebat! Materi selesai dibaca. +10 koin');
+});
+
+/* =========================================================
+   EVALUASI: GATE
+   ========================================================= */
+const KUNCI = '@1';
+
+$('#btnMasukEval').addEventListener('click', ()=>{
+  const nama = $('#inNama').value.trim();
+  const kelas = $('#inKelas').value.trim();
+  const kunci = $('#inKunci').value.trim();
+  if(!nama){ toast('Isi nama terlebih dahulu ya!'); return; }
+  if(!kelas){ toast('Isi kelas terlebih dahulu ya!'); return; }
+  if(kunci !== KUNCI){ toast('🔐 Kunci evaluasi salah.'); return; }
+  state.nama = nama; state.kelas = kelas;
+  save();
+  toast('🚀 Selamat menjelajah, ' + nama + '!');
+  renderEval();
+});
+
+$('#btnKeluar').addEventListener('click', ()=>{
+  if(!confirm('Ganti siswa? Progres saat ini akan direset.')) return;
+  localStorage.removeItem(LS_KEY);
+  state.nama=''; state.kelas=''; state.lives=3; state.score=0; state.coins=0;
+  state.badges=[]; state.completed={}; state.finalDone=false; state.materiRead=false;
+  updateHUD(); renderEval();
+});
+
+function renderEval(){
+  const gate = $('#evalGate');
+  const arena = $('#evalArena');
+  if(!state.nama){
+    gate.style.display = 'block';
+    arena.style.display = 'none';
+  } else {
+    gate.style.display = 'none';
+    arena.style.display = 'block';
+    renderProfil();
+    renderMap();
+  }
+  updateHUD();
+}
+
+function renderProfil(){
+  const box = $('#profilBox');
+  if(!box) return;
+  box.innerHTML = `👤 <b>${state.nama || '-'}</b><br>🏫 Kelas ${state.kelas || '-'}<br>⭐ Skor: <b>${state.score}</b> &nbsp; 🪙 Koin: <b>${state.coins}</b>`;
+  const bl = $('#badgeList');
+  bl.innerHTML = state.badges.length
+    ? state.badges.map(b=> `<span class="badge-pill">${b}</span>`).join('')
+    : '<span style="font-size:12.5px;color:#94a3b8">Belum ada badge.</span>';
+
+  const done = Object.keys(state.completed).length;
+  const pct = Math.round((done / QUESTIONS.length) * 100);
+  const bar = $('#barProgres'); if(bar) bar.style.width = pct + '%';
+  const txt = $('#txtProgres'); if(txt) txt.textContent = `${done} / ${QUESTIONS.length} titik selesai`;
+}
+
+function firstIncomplete(){
+  for(let i=0;i<QUESTIONS.length;i++){ if(!state.completed[i]) return i; }
+  return QUESTIONS.length;
+}
+
+function renderMap(){
+  const map = $('#mapNodes');
+  if(!map) return;
+  const fi = firstIncomplete();
+  let html = QUESTIONS.map((q,i)=>{
+    const done = !!state.completed[i];
+    const unlocked = i <= fi;
+    return `<button class="node ${done?'done':''} ${unlocked?'':'locked'}" ${unlocked?'':'disabled'} data-i="${i}">
+      <span class="node-icon">${done ? '✅' : (unlocked ? q.icon : '🔒')}</span>
+      <span class="node-num">Titik ${i+1}</span>
+      <span class="node-title">${q.concept}</span>
+    </button>`;
+  }).join('');
+
+  const finalUnlocked = fi === QUESTIONS.length;
+  html += `<button class="node final ${state.finalDone?'done':''} ${finalUnlocked?'':'locked'}" ${finalUnlocked?'':'disabled'} data-final="1">
+      <span class="node-icon">${state.finalDone ? '🏆' : (finalUnlocked ? '👑' : '🔒')}</span>
+      <span class="node-num">Tantangan Akhir</span>
+      <span class="node-title">Final Challenge — 3 Soal Penggabungan Konsep</span>
+    </button>`;
+
+  map.innerHTML = html;
+  $$('.node[data-i]', map).forEach(b=> b.addEventListener('click', ()=> openQuestion(+b.dataset.i, false)));
+  const fb = $('.node[data-final]', map);
+  if(fb && finalUnlocked) fb.addEventListener('click', ()=> openFinal());
+}
+
+/* =========================================================
+   EVALUASI: SOAL
+   ========================================================= */
+let current = null;
+let timerId = null, timeLeft = 0;
+
+function startTimer(sec){
+  clearInterval(timerId);
+  timeLeft = sec;
+  paintTimer(sec, sec);
+  timerId = setInterval(()=>{
+    timeLeft--;
+    paintTimer(timeLeft, sec);
+    if(timeLeft <= 0){
+      clearInterval(timerId);
+      waktuHabis();
+    }
+  }, 1000);
+}
+function paintTimer(left, total){
+  const el = $('#timerNum');
+  const bar = $('#timerBarFill');
+  if(el) el.textContent = Math.max(0,left) + 's';
+  if(bar) bar.style.width = Math.max(0, (left/total)*100) + '%';
+}
+function stopTimer(){ clearInterval(timerId); }
+
+function getCurrentQ(){
+  return current.isFinal ? FINAL_CHALLENGE[current.fi] : QUESTIONS[current.i];
+}
+
+function openQuestion(i, isFinal, fi){
+  current = { i, isFinal: !!isFinal, fi: fi||0, selected: null, attempts: 0, locked:false, panel:'q' };
+  renderQuestionPanel();
+}
+
+function openFinal(){
+  current = { i:null, isFinal:true, fi:0, selected:null, attempts:0, locked:false, panel:'q' };
+  renderQuestionPanel();
+}
+
+function renderQuestionPanel(){
+  const q = getCurrentQ();
+  const panel = $('#qPanel');
+  const map = $('#mapPanel');
+  map.style.display = 'none';
+  panel.style.display = 'block';
+
+  const totalLabel = current.isFinal
+    ? `Final Challenge • Soal ${current.fi+1} dari ${FINAL_CHALLENGE.length}`
+    : `Titik ${current.i+1} dari ${QUESTIONS.length}`;
+
+  panel.innerHTML = `
+    <div class="card">
+      <div class="q-head">
+        <span class="chip badge">${q.icon} ${q.concept}</span>
+        <span class="chip" style="background:#f5f3ff;border-color:#ddd6fe;color:#5b21b6">${q.level}</span>
+        <span class="chip" style="margin-left:auto">⭐ ${q.score} poin</span>
+        <span class="chip life">❤️ ${state.lives}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <small style="font-weight:800;color:#7c8aa5">${totalLabel}</small>
+        <span class="timer-ring">⏱️ <span id="timerNum">${q.time_limit}s</span></span>
+      </div>
+      <div class="timer-bar"><i id="timerBarFill" style="width:100%"></i></div>
+
+      <div style="margin-top:16px">
+        ${q.has_image && q.image_url ? `<img class="stimulus" src="${q.image_url}" alt="Stimulus soal">` : ''}
+        <div class="q-text">${q.icon} ${q.question}</div>
+        <div class="opts" id="optsBox">
+          ${q.options.map((o,idx)=>`
+            <button class="opt" data-o="${idx}">
+              <span class="k">${String.fromCharCode(65+idx)}</span>
+              <span>${o}</span>
+            </button>`).join('')}
+        </div>
+      </div>
+
+      <div id="qFeedback" class="feedback"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <button class="btn btn-primary btn-sm" id="btnJawab">✅ Jawab</button>
+        <button class="btn btn-ghost btn-sm" id="btnPembahasanQ">🔐 Pembahasan</button>
+        <button class="btn btn-ghost btn-sm" id="btnKembaliPeta">🗺️ Kembali ke Peta</button>
+      </div>
+    </div>`;
+
+  $$('#optsBox .opt').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      if(current.locked) return;
+      $$('#optsBox .opt').forEach(x=> x.classList.remove('sel'));
+      b.classList.add('sel');
+      current.selected = +b.dataset.o;
+    });
+  });
+  $('#btnJawab').addEventListener('click', cekJawaban);
+  $('#btnKembaliPeta').addEventListener('click', kembaliKePeta);
+  $('#btnPembahasanQ').addEventListener('click', ()=> mintaKunci(()=> tampilkanPembahasanSoal(q)));
+
+  startTimer(q.time_limit || 45);
+}
+
+function kembaliKePeta(){
+  stopTimer();
+  $('#qPanel').style.display = 'none';
+  $('#mapPanel').style.display = 'block';
+  renderProfil();
+  renderMap();
+}
+
+function cekJawaban(){
+  if(current.locked) return;
+  const q = getCurrentQ();
+  if(current.selected === null){ toast('Pilih salah satu jawaban dulu ya!'); return; }
+
+  const opts = $$('#optsBox .opt');
+  const fb = $('#qFeedback');
+  const benar = current.selected === q.correct;
+
+  if(benar){
+    stopTimer();
+    current.locked = true;
+    opts.forEach((o,idx)=>{
+      o.disabled = true;
+      if(idx === q.correct) o.classList.add('ok');
+    });
+    state.score += q.score;
+    state.coins += q.coins || 6;
+    if(q.badge && !state.badges.includes(q.badge)) state.badges.push(q.badge);
+
+    if(current.isFinal){
+      state.completed['final_'+current.fi] = true;
+      const allFinal = FINAL_CHALLENGE.every((_,i)=> state.completed['final_'+i]);
+      if(allFinal){ state.finalDone = true; }
+    } else {
+      state.completed[current.i] = true;
+    }
+    save(); updateHUD(); renderProfil();
+
+    fb.className = 'feedback show fb-ok';
+    fb.innerHTML = `🎉 <b>Jawaban benar!</b> Kamu mendapatkan ⭐ ${q.score} poin dan 🪙 ${q.coins||6} koin.
+      <br><button class="btn btn-warn btn-sm" style="margin-top:10px" id="btnPembahasanOk">🔐 Lihat Pembahasan</button>`;
+
+    if(current.isFinal){
+      if(state.finalDone){
+        setTimeout(showVictory, 700);
+      } else {
+        fb.innerHTML += `<div style="margin-top:12px"><button class="btn btn-primary btn-sm" id="btnNextFinal">➡️ Soal Final Berikutnya</button></div>`;
+      }
+    } else {
+      fb.innerHTML += `<div style="margin-top:12px"><button class="btn btn-primary btn-sm" id="btnNextStage">➡️ Lanjut ke Titik Berikutnya</button></div>`;
+    }
+
+    const bp = $('#btnPembahasanOk');
+    if(bp) bp.addEventListener('click', ()=> mintaKunci(()=> tampilkanPembahasanSoal(q)));
+
+    const bn = $('#btnNextStage');
+    if(bn) bn.addEventListener('click', kembaliKePeta);
+
+    const bnf = $('#btnNextFinal');
+    if(bnf) bnf.addEventListener('click', ()=>{
+      current = { i:null, isFinal:true, fi: current.fi+1, selected:null, attempts:0, locked:false };
+      renderQuestionPanel();
+    });
+
+  } else {
+    current.attempts++;
+    state.lives--;
+    updateHUD(); save(); renderProfil();
+    opts.forEach(o=>{
+      o.disabled = false;
+    });
+    const chosen = opts[current.selected];
+    if(chosen) chosen.classList.add('no');
+
+    fb.className = 'feedback show fb-no';
+    let html = `❌ <b>Belum tepat.</b> Nyawa berkurang 1.`;
+    if(q.hint){
+      html += `<div class="fb-hint">💡 <b>Petunjuk:</b> ${q.hint}</div>`;
+    }
+    if(state.lives <= 0){
+      html += `<div style="margin-top:12px"><b>❤️ Nyawa habis!</b> Jangan menyerah. Baca kembali materi, lalu pulihkan nyawamu.</div>
+               <button class="btn btn-ok btn-sm" style="margin-top:10px" id="btnPulih">📖 Baca Materi &amp; Pulihkan 3 Nyawa</button>`;
+    } else {
+      html += `<div style="margin-top:10px"><small>Coba lagi ya, kamu masih punya ${state.lives} nyawa.</small></div>`;
+    }
+    fb.innerHTML = html;
+
+    const bp = $('#btnPulih');
+    if(bp) bp.addEventListener('click', ()=>{
+      state.lives = 3; state.coins = Math.max(0, state.coins - 5);
+      save(); updateHUD(); renderProfil();
+      toast('❤️ Nyawa dipulihkan! (-5 koin)');
+      go('materi');
+    });
+  }
+}
+
+function waktuHabis(){
+  if(current.locked) return;
+  const q = getCurrentQ();
+  current.locked = true;
+  $$('#optsBox .opt').forEach(o=> o.disabled = true);
+  state.lives--;
+  updateHUD(); save(); renderProfil();
+  const fb = $('#qFeedback');
+  fb.className = 'feedback show fb-no';
+  fb.innerHTML = `⏰ <b>Waktu habis!</b> Nyawa berkurang 1.
+    ${q.hint ? `<div class="fb-hint">💡 <b>Petunjuk:</b> ${q.hint}</div>` : ''}
+    <div style="margin-top:12px"><button class="btn btn-primary btn-sm" id="btnUlangSoal">🔄 Coba Lagi</button></div>`;
+  $('#btnUlangSoal').addEventListener('click', ()=>{
+    current.locked = false; current.selected = null; current.attempts = 0;
+    renderQuestionPanel();
+  });
+}
+
+/* =========================================================
+   KUNCI & PEMBAHASAN
+   ========================================================= */
+let kunciCallback = null;
+function mintaKunci(cb){
+  kunciCallback = cb;
+  $('#inpKunciModal').value = '';
+  openModal('modalKunci');
+  setTimeout(()=> $('#inpKunciModal').focus(), 200);
+}
+$('#btnKunciOk').addEventListener('click', ()=>{
+  const v = $('#inpKunciModal').value.trim();
+  if(v !== KUNCI){ toast('🔐 Kunci salah. Coba lagi.'); return; }
+  closeModal('modalKunci');
+  if(kunciCallback) kunciCallback();
+  kunciCallback = null;
+});
+$('#inpKunciModal').addEventListener('keydown', e=>{ if(e.key === 'Enter') $('#btnKunciOk').click(); });
+
+function tampilkanPembahasanSoal(q){
+  const jawab = q.options[q.correct];
+  $('#pembahasanBody').innerHTML = `
+    <p style="font-weight:800;color:#1e3a8a">${q.icon} ${q.question}</p>
+    <p><b>✅ Jawaban benar:</b> ${jawab}</p>
+    <p style="background:#f0f7ff;border-left:4px solid #2f6df6;border-radius:10px;padding:12px 14px;margin-top:8px">
+      <b>📘 Pembahasan:</b><br>${q.explanation || 'Belum ada pembahasan untuk soal ini.'}
+    </p>
+    ${q.remediation ? `<p style="margin-top:8px"><b>🩹 Remedial:</b> ${q.remediation}</p>` : ''}
+  `;
+  openModal('modalPembahasan');
+}
+
+/* =========================================================
+   MODE GURU
+   ========================================================= */
+$('#btnGuru').addEventListener('click', ()=>{
+  mintaKunci(showGuru);
+});
+
+function showGuru(){
+  const done = Object.keys(state.completed).filter(k=> !k.startsWith('final_')).length;
+  let html = `
+    <div style="background:#f7faff;border:1px solid #dfe7f5;border-radius:14px;padding:14px;margin-bottom:14px">
+      <b>👤 Nama:</b> ${state.nama || '-'} &nbsp;|&nbsp; <b>🏫 Kelas:</b> ${state.kelas || '-'}<br>
+      <b>⭐ Skor:</b> ${state.score} &nbsp;|&nbsp; <b>🪙 Koin:</b> ${state.coins} &nbsp;|&nbsp; <b>❤️ Nyawa:</b> ${state.lives}<br>
+      <b>📈 Progres:</b> ${done} / ${QUESTIONS.length} titik misi &nbsp;|&nbsp; <b>👑 Final:</b> ${state.finalDone ? 'Selesai' : 'Belum'}
+      <div style="margin-top:8px"><b>🏅 Badge:</b> ${state.badges.length ? state.badges.join(', ') : '-'}</div>
+    </div>
+    <h4 style="margin:0 0 8px">📋 Daftar Soal &amp; Kunci Jawaban</h4>
+    <ol style="padding-left:20px;margin:0">
+      ${QUESTIONS.map((q,i)=>{
+        const st = state.completed[i] ? '✅' : '⬜';
+        return `<li style="margin-bottom:9px">
+          ${st} <b>${q.concept}</b> <span style="color:#7c8aa5">(${q.level})</span><br>
+          <span style="font-size:13.4px">${q.question}</span><br>
+          <span style="color:#166534;font-weight:800">Kunci: ${String.fromCharCode(65+q.correct)}. ${q.options[q.correct]}</span>
+        </li>`;
+      }).join('')}
+    </ol>
+    <h4 style="margin:14px 0 8px">👑 Final Challenge</h4>
+    <ol style="padding-left:20px;margin:0">
+      ${FINAL_CHALLENGE.map(q=>`<li style="margin-bottom:9px">
+        <b>${q.concept}</b><br>
+        <span style="font-size:13.4px">${q.question}</span><br>
+        <span style="color:#166534;font-weight:800">Kunci: ${String.fromCharCode(65+q.correct)}. ${q.options[q.correct]}</span>
+      </li>`).join('')}
+    </ol>
+    <p style="margin-top:14px;font-size:12.5px;color:#7c8aa5">Ambang ketuntasan yang disarankan: ${75}% dari total skor maksimal.</p>
+  `;
+  $('#guruBody').innerHTML = html;
+  openModal('modalGuru');
+}
+
+/* =========================================================
+   KEMENANGAN
+   ========================================================= */
+function showVictory(){
+  const maxScore = QUESTIONS.reduce((a,q)=>a+q.score,0) + FINAL_CHALLENGE.reduce((a,q)=>a+q.score,0);
+  const pct = Math.round((state.score / maxScore) * 100);
+  let bintang = '⭐';
+  if(pct >= 60) bintang = '⭐⭐';
+  if(pct >= 80) bintang = '⭐⭐⭐';
+  if(!state.badges.includes('👑 Master Si Pencerna')) state.badges.push('👑 Master Si Pencerna');
+  save(); updateHUD();
+
+  $('#infoBody').innerHTML = `
+    <div class="victory">
+      <div class="trophy">🏆</div>
+      <h3 style="font-weight:900;font-size:1.5rem;margin-top:8px">Selamat, ${state.nama}!</h3>
+      <p style="color:#5b6b85">Kamu berhasil menyelesaikan seluruh petualangan Si Pencerna dan menyandang gelar
+        <b>👑 Master Si Pencerna</b>.</p>
+      <div style="font-size:34px;letter-spacing:4px">${bintang}</div>
+      <div class="stat-grid">
+        <div class="stat"><b>${state.score}</b><span>⭐ Total Skor</span></div>
+        <div class="stat"><b>${state.coins}</b><span>🪙 Koin</span></div>
+        <div class="stat"><b>${state.badges.length}</b><span>🏅 Badge</span></div>
+        <div class="stat"><b>${pct}%</b><span>📈 Ketuntasan</span></div>
+      </div>
+      <p style="font-size:13.6px;color:#5b6b85">
+        ${pct >= 75
+          ? 'Luar biasa! Kamu sudah menguasai materi alat pencernaan manusia dengan sangat baik. 🎉'
+          : 'Kerja bagus! Baca kembali materi dan ulangi misi yang belum sempurna agar penguasaanmu makin mantap. 💪'}
+      </p>
+      <div class="badge-list" style="justify-content:center">
+        ${state.badges.map(b=> `<span class="badge-pill">${b}</span>`).join('')}
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:18px">
+      <button class="btn btn-ghost btn-sm" data-close-info="1">Tutup</button>
+    </div>`;
+  openModal('modalInfo');
+  const b = $('[data-close-info]');
+  if(b) b.addEventListener('click', ()=> closeModal('modalInfo'));
+}
+
+/* =========================================================
+   INISIALISASI
+   ========================================================= */
+load();
+updateHUD();
+renderProfil();
+renderMap();
+setTimeout(fitCanvas, 120);
+setTimeout(fitCanvas, 600);
+
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') $$('.modal.open').forEach(m=> m.classList.remove('open'));
+});
+</script>
+</body>
+</html>
